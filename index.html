@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>特徴量マッチング</title>
+  </head>
+  <body>
+    <video id="video" autoplay></video>
+    <canvas id="canvas" width="640" height="480"></canvas>
+    <p id="status">Loading OpenCV...</p>
+
+    <script>
+      let video = document.getElementById("video");
+      let canvas = document.getElementById("canvas");
+      let ctx = canvas.getContext("2d");
+      let statusText = document.getElementById("status");
+
+      function loadOpenCv() {
+        let script = document.createElement("script");
+        script.src = "https://docs.opencv.org/4.10.0/opencv.js";
+        script.onload = onOpenCvReady;
+        script.onerror = onOpenCvError;
+        document.body.appendChild(script);
+      }
+
+      function onOpenCvReady() {
+        console.log("OpenCV.js script loaded.");
+        statusText.textContent = "OpenCV.js script loaded, initializing...";
+        checkOpenCvReady();
+      }
+
+      function onOpenCvError() {
+        console.error("Failed to load OpenCV.js!");
+        statusText.textContent = "Failed to load OpenCV.js!";
+      }
+
+      function checkOpenCvReady() {
+        if (typeof cv !== "undefined" && cv.getBuildInformation) {
+          console.log("OpenCV.js is ready.");
+          statusText.textContent = "OpenCV.js is ready.";
+          startProcessing();
+        } else {
+          setTimeout(checkOpenCvReady, 100);
+        }
+      }
+
+      function startProcessing() {
+        navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+          video.srcObject = stream;
+        });
+
+        setInterval(processImage, 3000);
+      }
+
+      function processImage() {
+        if (typeof cv === "undefined" || !cv.imread) {
+          console.log("OpenCV is not fully initialized yet.");
+          return;
+        }
+
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        let src = cv.imread(canvas);
+        cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+
+        let orb = new cv.ORB();
+        let keypoints = new cv.KeyPointVector();
+        let descriptors = new cv.Mat();
+        orb.detectAndCompute(src, new cv.Mat(), keypoints, descriptors);
+
+        fetch("features.json")
+          .then((response) => response.json())
+          .then((savedFeatures) => {
+            // JSON から descriptors を取得
+            let descriptorArray = savedFeatures.descriptors.flat(); // 2次元配列 → 1次元配列に変換
+
+            // 配列の長さが適切か確認
+            console.log("Descriptor Array Length:", descriptorArray.length);
+
+            // OpenCV.js の Mat に変換
+            let savedDescriptors = new cv.Mat(
+              descriptorArray.length / 32,
+              32,
+              cv.CV_8U
+            ); // ORB は 32次元の特徴量
+            savedDescriptors.data.set(new Uint8Array(descriptorArray)); // ここで適切なサイズの Uint8Array をセット
+
+            console.log("Saved Descriptors:", savedDescriptors);
+
+            let bf = new cv.BFMatcher(cv.NORM_HAMMING, true);
+            let matches = new cv.DMatchVector();
+            bf.match(descriptors, savedDescriptors, matches);
+
+            console.log("マッチ数:", matches.size());
+            if (matches.size() > 140) {
+              //   window.location.href = "https://example.com";
+            }
+
+            src.delete();
+            descriptors.delete();
+            keypoints.delete();
+            matches.delete();
+            savedDescriptors.delete();
+          });
+      }
+
+      window.onload = loadOpenCv; // OpenCV.js を動的にロード
+    </script>
+  </body>
+</html>
