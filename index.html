@@ -6,15 +6,33 @@
     <title>特徴量マッチング</title>
   </head>
   <body>
-    <video id="video" autoplay></video>
-    <canvas id="canvas" width="640" height="480"></canvas>
+    <div style="display: flex; gap: 50px">
+      <div style="position: relative">
+        <video id="video" autoplay></video>
+        <div
+          style="
+            position: absolute;
+            top: 50px;
+            left: 200px;
+            width: 200px;
+            height: 360px;
+            border: 1px solid red;
+          "
+        ></div>
+      </div>
+      <canvas id="canvas" width="640" height="480"> </canvas>
+    </div>
     <p id="status">Loading OpenCV...</p>
+    <p id="width">Loading OpenCV...</p>
+    <p id="height">Loading OpenCV...</p>
 
     <script>
       let video = document.getElementById("video");
       let canvas = document.getElementById("canvas");
       let ctx = canvas.getContext("2d");
       let statusText = document.getElementById("status");
+      let widthText = document.getElementById("width");
+      let heightText = document.getElementById("height");
 
       function loadOpenCv() {
         let script = document.createElement("script");
@@ -67,10 +85,12 @@
         // 画像のサイズ取得
         let width = src.cols;
         let height = src.rows;
+        widthText.textContent = "width: " + width;
+        heightText.textContent = "height: " + height;
 
         // 横の幅を高さの 1/2 にする
-        let cropWidth = Math.floor(height / 2);
-        let cropHeight = height; // 縦はフルサイズ
+        let cropWidth = Math.floor(height * 0.4);
+        let cropHeight = height * 0.8; // 縦はフルサイズ
 
         // 中央位置を計算
         let centerX = Math.floor(width / 2);
