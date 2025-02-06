@@ -50,7 +50,7 @@
           video.srcObject = stream;
         });
 
-        setInterval(processImage, 3000);
+        setInterval(processImage, 1000);
       }
 
       function processImage() {
@@ -59,44 +59,86 @@
           return;
         }
 
+        let statusText = document.getElementById("status");
+
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         let src = cv.imread(canvas);
-        cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+
+        // 画像のサイズ取得
+        let width = src.cols;
+        let height = src.rows;
+
+        // 横の幅を高さの 1/2 にする
+        let cropWidth = Math.floor(height / 2);
+        let cropHeight = height; // 縦はフルサイズ
+
+        // 中央位置を計算
+        let centerX = Math.floor(width / 2);
+
+        // 切り取り範囲の指定
+        let rect = new cv.Rect(
+          centerX - Math.floor(cropWidth / 2), // X座標 (横中央)
+          0, // Y座標 (上端からスタート)
+          cropWidth, // 切り取る幅
+          cropHeight // 切り取る高さ
+        );
+
+        let cropped = src.roi(rect); // 指定範囲を切り取る
+
+        // 前処理（グレースケール & コントラスト強調）
+        cv.cvtColor(cropped, cropped, cv.COLOR_RGBA2GRAY, 0);
+        cv.GaussianBlur(cropped, cropped, new cv.Size(3, 3), 0);
+        cv.equalizeHist(cropped, cropped);
 
         let orb = new cv.ORB();
         let keypoints = new cv.KeyPointVector();
         let descriptors = new cv.Mat();
-        orb.detectAndCompute(src, new cv.Mat(), keypoints, descriptors);
+        orb.detectAndCompute(cropped, new cv.Mat(), keypoints, descriptors);
 
         fetch("features.json")
           .then((response) => response.json())
           .then((savedFeatures) => {
-            // JSON から descriptors を取得
-            let descriptorArray = savedFeatures.descriptors.flat(); // 2次元配列 → 1次元配列に変換
+            let savedDescriptors = new cv.Mat();
+            let descriptorArray = savedFeatures.descriptors.flat();
 
-            // 配列の長さが適切か確認
-            console.log("Descriptor Array Length:", descriptorArray.length);
+            if (descriptorArray.length % 32 !== 0) {
+              console.error("データサイズが不正です: ", descriptorArray.length);
+              return;
+            }
 
-            // OpenCV.js の Mat に変換
-            let savedDescriptors = new cv.Mat(
-              descriptorArray.length / 32,
-              32,
-              cv.CV_8U
-            ); // ORB は 32次元の特徴量
-            savedDescriptors.data.set(new Uint8Array(descriptorArray)); // ここで適切なサイズの Uint8Array をセット
+            let descriptorUint8Array = new Uint8Array(descriptorArray);
+            savedDescriptors.create(descriptorArray.length / 32, 32, cv.CV_8U);
+            savedDescriptors.data.set(descriptorUint8Array);
 
-            console.log("Saved Descriptors:", savedDescriptors);
+            if (descriptors.empty()) {
+              console.log("No descriptors found.");
+              statusText.textContent = "良いマッチ数: 0";
+              return;
+            }
 
-            let bf = new cv.BFMatcher(cv.NORM_HAMMING, true);
-            let matches = new cv.DMatchVector();
-            bf.match(descriptors, savedDescriptors, matches);
+            let bf = new cv.BFMatcher(cv.NORM_HAMMING, false);
+            let matches = new cv.DMatchVectorVector();
+            bf.knnMatch(descriptors, savedDescriptors, matches, 2);
 
-            console.log("マッチ数:", matches.size());
-            if (matches.size() > 140) {
-              //   window.location.href = "https://example.com";
+            let goodMatches = 0;
+            for (let i = 0; i < matches.size(); i++) {
+              let m = matches.get(i).get(0);
+              let n = matches.get(i).get(1);
+              if (m.distance < 0.8 * n.distance) {
+                goodMatches++;
+              }
+            }
+
+            console.log("良いマッチ数:", goodMatches);
+            statusText.textContent = "良いマッチ数: " + goodMatches;
+
+            // ページ遷移をコメントアウト
+            if (goodMatches > 11) {
+              window.location.href = "https://avalon-45913.web.app";
             }
 
             src.delete();
+            cropped.delete();
             descriptors.delete();
             keypoints.delete();
             matches.delete();
