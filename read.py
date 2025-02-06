@@ -3,7 +3,7 @@ import numpy as np
 import json
 
 # 画像を読み込む
-image_path = "original_yy_hanten.jpg"
+image_path = "original_yy.jpg"
 image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
 
 # 前処理: ヒストグラム均等化 + Cannyエッジ

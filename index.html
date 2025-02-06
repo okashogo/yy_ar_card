@@ -167,6 +167,59 @@
       }
 
       window.onload = loadOpenCv; // OpenCV.js を動的にロード
+
+      async function startCamera() {
+        let constraints = {
+          video: {
+            facingMode: "environment", // 外カメラを優先
+            width: { ideal: 1280 }, // 解像度を調整（1280x720 以上を推奨）
+            height: { ideal: 720 },
+          },
+        };
+
+        try {
+          let stream = await navigator.mediaDevices.getUserMedia(constraints);
+          video.srcObject = stream;
+        } catch (error) {
+          console.error("カメラの起動に失敗しました:", error);
+          selectCameraManually(); // 手動でカメラを選択
+        }
+      }
+
+      // カメラ一覧を取得し、外カメラを探す
+      async function selectCameraManually() {
+        let devices = await navigator.mediaDevices.enumerateDevices();
+        let videoDevices = devices.filter(
+          (device) => device.kind === "videoinput"
+        );
+
+        if (videoDevices.length === 0) {
+          console.error("カメラデバイスが見つかりません");
+          return;
+        }
+
+        let backCamera = videoDevices.find((device) =>
+          device.label.toLowerCase().includes("back")
+        );
+
+        let constraints = {
+          video: {
+            deviceId: backCamera
+              ? { exact: backCamera.deviceId }
+              : { exact: videoDevices[0].deviceId },
+          },
+        };
+
+        try {
+          let stream = await navigator.mediaDevices.getUserMedia(constraints);
+          video.srcObject = stream;
+        } catch (error) {
+          console.error("カメラの手動選択に失敗しました:", error);
+        }
+      }
+
+      // ページ読み込み時に外カメラを起動
+      window.onload = startCamera;
     </script>
   </body>
 </html>
