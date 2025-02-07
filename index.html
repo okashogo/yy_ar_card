@@ -46,7 +46,7 @@
       <p id="width">Loading OpenCV...</p>
       <p id="height">Loading OpenCV...</p>
     </div>
-    <button id="startCamera">カメラを開始</button>
+    <!-- <button id="startCamera">カメラを開始</button> -->
 
     <script>
       let video = document.getElementById("video");
@@ -200,20 +200,31 @@
       }
 
       async function startCamera() {
-        let constraints = {
-          video: {
-            facingMode: "environment", // 外カメラを優先
-            width: { ideal: 1280 }, // 解像度を調整（1280x720 以上を推奨）
-            height: { ideal: 720 },
-          },
-        };
-
         try {
+          // カメラデバイスを取得
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          const videoDevices = devices.filter(
+            (device) => device.kind === "videoinput"
+          );
+
+          // 外カメラを探す（ラベルに "back" が含まれるものを選ぶ）
+          let backCamera = videoDevices.find((device) =>
+            device.label.toLowerCase().includes("back")
+          );
+
+          let constraints = {
+            video: {
+              deviceId: backCamera ? { exact: backCamera.deviceId } : undefined,
+              facingMode: backCamera ? undefined : "environment",
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+            },
+          };
+
           let stream = await navigator.mediaDevices.getUserMedia(constraints);
           video.srcObject = stream;
         } catch (error) {
           console.error("カメラの起動に失敗しました:", error);
-          selectCameraManually(); // 手動でカメラを選択
         }
       }
 
