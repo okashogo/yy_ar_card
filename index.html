@@ -324,10 +324,12 @@
       //   window.onload = loadOpenCv; // OpenCV.js を動的にロード
 
       // ボタンをクリックしたときにカメラを開始
-      document.getElementById("startCamera").addEventListener("click", () => {
+      //   document.getElementById("startCamera").addEventListener("click", () => {
+      window.onload = () => {
         startCamera();
         loadOpenCv();
-      });
+      };
+      //   });
     </script>
   </body>
 </html>
