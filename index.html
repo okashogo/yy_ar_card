@@ -201,30 +201,48 @@
 
       async function startCamera() {
         try {
-          // カメラデバイスを取得
+          // すべてのカメラデバイスを取得
           const devices = await navigator.mediaDevices.enumerateDevices();
           const videoDevices = devices.filter(
             (device) => device.kind === "videoinput"
           );
 
-          // 外カメラを探す（ラベルに "back" が含まれるものを選ぶ）
-          let backCamera = videoDevices.find((device) =>
-            device.label.toLowerCase().includes("back")
-          );
+          let backCamera = null;
+
+          // iOSでは `device.label` の取得が getUserMedia を実行後でないとできない場合がある
+          if (videoDevices.length > 1) {
+            backCamera = videoDevices.find((device) =>
+              device.label.toLowerCase().includes("back")
+            );
+          }
 
           let constraints = {
             video: {
-              deviceId: backCamera ? { exact: backCamera.deviceId } : undefined,
-              facingMode: backCamera ? undefined : "environment",
               width: { ideal: 1280 },
               height: { ideal: 720 },
+              facingMode: backCamera ? undefined : { ideal: "environment" }, // バックカメラが見つからなかった場合
+              deviceId: backCamera ? { exact: backCamera.deviceId } : undefined,
             },
           };
 
+          // ストリームを取得
           let stream = await navigator.mediaDevices.getUserMedia(constraints);
           video.srcObject = stream;
         } catch (error) {
           console.error("カメラの起動に失敗しました:", error);
+        }
+      }
+
+      // 初回の getUserMedia 呼び出しでデバイス情報を取得
+      async function initializeCamera() {
+        try {
+          let stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+          });
+          stream.getTracks().forEach((track) => track.stop()); // すぐに停止してデバイス情報だけ取得
+          await startCamera();
+        } catch (error) {
+          console.error("初回カメラアクセスに失敗しました:", error);
         }
       }
 
@@ -337,7 +355,7 @@
       // ボタンをクリックしたときにカメラを開始
       //   document.getElementById("startCamera").addEventListener("click", () => {
       window.onload = () => {
-        startCamera();
+        initializeCamera();
         loadOpenCv();
       };
       //   });
