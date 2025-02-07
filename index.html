@@ -24,7 +24,7 @@
   </head>
   <body>
     <!-- <div style="display: flex; gap: 50px"> -->
-    <video id="video" autoplay></video>
+    <video id="video"></video>
     <canvas
       id="canvas"
       width="640"
@@ -47,6 +47,7 @@
       <p id="width">Loading OpenCV...</p>
       <p id="height">Loading OpenCV...</p>
     </div>
+    <button id="startCamera">カメラを開始</button>
 
     <script>
       let video = document.getElementById("video");
@@ -96,6 +97,7 @@
       function startProcessing() {
         navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
           video.srcObject = stream;
+          video.play();
         });
 
         interval = setInterval(processImage, 1000);
@@ -248,9 +250,6 @@
         }
       }
 
-      // ページ読み込み時に外カメラを起動
-      window.onload = startCamera;
-
       // 📌 カメラ映像の取得
       navigator.mediaDevices
         .getUserMedia({ video: { facingMode: "environment" } })
@@ -323,7 +322,13 @@
         camera.updateProjectionMatrix();
       });
 
-      window.onload = loadOpenCv; // OpenCV.js を動的にロード
+      //   window.onload = loadOpenCv; // OpenCV.js を動的にロード
+
+      // ボタンをクリックしたときにカメラを開始
+      document.getElementById("startCamera").addEventListener("click", () => {
+        startCamera();
+        loadOpenCv();
+      });
     </script>
   </body>
 </html>
