@@ -137,7 +137,7 @@
         let descriptors = new cv.Mat();
         orb.detectAndCompute(cropped, new cv.Mat(), keypoints, descriptors);
 
-        fetch("features.json")
+        fetch("features_with_ocr.json")
           .then((response) => response.json())
           .then((savedFeatures) => {
             let savedDescriptors = new cv.Mat();
@@ -175,7 +175,7 @@
             statusText.textContent = "良いマッチ数: " + goodMatches;
 
             // ページ遷移をコメントアウト
-            if (goodMatches > 11) {
+            if (goodMatches > 12) {
               model.visible = true;
               //  setInterval(processImage, 1000)を止める。
               clearInterval(interval);
