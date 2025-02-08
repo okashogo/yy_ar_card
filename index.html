@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>特徴量マッチング</title>
+    <title>ワイワイアプリ</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/loaders/GLTFLoader.js"></script>
     <style>
@@ -175,7 +175,7 @@
             statusText.textContent = "良いマッチ数: " + goodMatches;
 
             // ページ遷移をコメントアウト
-            if (goodMatches > 12) {
+            if (goodMatches > 0) {
               model.visible = true;
               //  setInterval(processImage, 1000)を止める。
               clearInterval(interval);
@@ -304,21 +304,49 @@
       directionalLight.position.set(10, 10, 10); // ライトの方向
       scene.add(directionalLight);
 
-      const pointLight = new THREE.PointLight(0xffffff, 2, 100);
-      pointLight.position.set(0, 5, 5);
-      scene.add(pointLight);
+      //   const pointLight = new THREE.PointLight(0xffffff, 2, 100);
+      //   pointLight.position.set(0, 5, 5);
+      //   scene.add(pointLight);
 
-      // 🎯 モデルを直接照らす SpotLight（黄色の強めのライト）
-      const spotLight = new THREE.SpotLight(0xffffff, 3, 300, Math.PI / 6, 0.5);
-      spotLight.position.set(0, 10, 10);
-      scene.add(spotLight);
+      //   // 🎯 モデルを直接照らす SpotLight（黄色の強めのライト）
+      //   const spotLight = new THREE.SpotLight(0xffffff, 3, 300, Math.PI / 6, 0.5);
+      //   spotLight.position.set(0, 10, 10);
+      //   scene.add(spotLight);
 
       // 📌 3Dモデル（Pikachu.glb）をロード
       let model;
       const loader = new THREE.GLTFLoader();
-      loader.load("pikachu.glb", function (gltf) {
+
+      const pokemons = [
+        { name: "nyasu.glb", weight: 5 },
+        { name: "kodakku.glb", weight: 5 },
+        { name: "pikachu.glb", weight: 5 },
+        { name: "Groudon.glb", weight: 1 }, // 出現確率を低め
+        { name: "GroudonPrimal.glb", weight: 1 }, // 出現確率を低め
+      ];
+
+      // 重みに基づいてランダムに選択する関数
+      function getRandomPokemon() {
+        let totalWeight = pokemons.reduce((sum, p) => sum + p.weight, 0);
+        let randomNum = Math.random() * totalWeight;
+
+        for (let p of pokemons) {
+          if (randomNum < p.weight) {
+            return p.name;
+          }
+          randomNum -= p.weight;
+        }
+      }
+
+      // ランダムに選ばれたポケモンをロード
+      const selectedPokemon = getRandomPokemon();
+      loader.load(selectedPokemon, function (gltf) {
         model = gltf.scene;
-        model.scale.set(0.04, 0.04, 0.04); // サイズ調整
+        if (["Groudon.glb", "GroudonPrimal.glb"].includes(selectedPokemon)) {
+          model.scale.set(0.003, 0.003, 0.003); // サイズ調整
+        } else {
+          model.scale.set(0.03, 0.03, 0.03); // サイズ調整
+        }
         model.position.set(0, -1, 0); // 位置調整
         model.visible = false;
         scene.add(model);
