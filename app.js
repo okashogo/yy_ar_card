@@ -1,4 +1,4 @@
-const THRESHOLD_VALUE = 0.4;
+const THRESHOLD_VALUE = 0.37;
 
 const video = document.getElementById("camera");
 const canvas = document.getElementById("output");
