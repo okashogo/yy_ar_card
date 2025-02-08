@@ -8,6 +8,8 @@ const templateImgElement = document.getElementById("template-img");
 // 📌 3Dモデル（Pikachu.glb）をロード
 let model;
 
+let maxSimilarity = 0;
+
 // Webカメラ映像を取得
 navigator.mediaDevices
   .getUserMedia({ video: true })
@@ -97,10 +99,11 @@ const start = async () => {
 
     // 類似度スコアを計算
     const similarity = matches.size() / templateKeypoints.size();
-    statusElement.innerText = `類似度: ${similarity.toFixed(2)}`;
+    maxSimilarity = Math.max(maxSimilarity, similarity);
+    statusElement.innerText = `類似度: ${maxSimilarity.toFixed(2)}`;
 
-    if (similarity >= THRESHOLD_VALUE) {
-      statusElement.innerText = `類似度: ${similarity.toFixed(2)}`;
+    if (maxSimilarity >= THRESHOLD_VALUE) {
+      statusElement.innerText = `類似度: ${maxSimilarity.toFixed(2)}`;
       model.visible = true;
       clearInterval(interval);
     }
