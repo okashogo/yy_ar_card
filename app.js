@@ -100,7 +100,7 @@ const start = async () => {
     statusElement.innerText = `類似度: ${similarity.toFixed(2)}`;
 
     if (similarity >= THRESHOLD_VALUE) {
-      statusElement.innerText = ``;
+      statusElement.innerText = `類似度: ${similarity.toFixed(2)}`;
       model.visible = true;
       clearInterval(interval);
     }
