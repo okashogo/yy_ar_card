@@ -1,4 +1,4 @@
-const THRESHOLD_VALUE = 0.3;
+const THRESHOLD_VALUE = 0.4;
 
 const video = document.getElementById("camera");
 const canvas = document.getElementById("output");
@@ -209,7 +209,6 @@ navigator.mediaDevices
   })
   .catch((err) => {
     console.error("カメラのアクセスに失敗しました:", err);
-    model.visible = true;
   });
 
 // 📌 Three.js のシーンを作成
