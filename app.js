@@ -3,6 +3,9 @@ const canvas = document.getElementById("output");
 const statusElement = document.getElementById("status");
 const templateImgElement = document.getElementById("template-img");
 
+// 📌 3Dモデル（Pikachu.glb）をロード
+let model;
+
 // Webカメラ映像を取得
 navigator.mediaDevices
   .getUserMedia({ video: true })
@@ -92,14 +95,11 @@ const start = async () => {
 
     // 類似度スコアを計算
     const similarity = matches.size() / templateKeypoints.size();
-    statusElement.innerText = `ステータス: カードが認識されていません (類似度: ${similarity.toFixed(
-      2
-    )})`;
+    statusElement.innerText = `類似度: ${similarity.toFixed(2)}`;
 
-    if (similarity >= 0.3) {
-      statusElement.innerText = `ステータス: カードが認識されました！ (類似度: ${similarity.toFixed(
-        2
-      )})`;
+    if (similarity >= 0.28) {
+      statusElement.innerText = ``;
+      model.visible = true;
       clearInterval(interval);
     }
 
@@ -122,4 +122,174 @@ function checkOpenCvReady() {
   }
 }
 
-checkOpenCvReady();
+async function startCamera() {
+  try {
+    // すべてのカメラデバイスを取得
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const videoDevices = devices.filter(
+      (device) => device.kind === "videoinput"
+    );
+
+    let backCamera = null;
+
+    // iOSでは `device.label` の取得が getUserMedia を実行後でないとできない場合がある
+    if (videoDevices.length > 1) {
+      backCamera = videoDevices.find((device) =>
+        device.label.toLowerCase().includes("back")
+      );
+    }
+
+    let constraints = {
+      video: {
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+        facingMode: backCamera ? undefined : { ideal: "environment" }, // バックカメラが見つからなかった場合
+        deviceId: backCamera ? { exact: backCamera.deviceId } : undefined,
+      },
+    };
+
+    // ストリームを取得
+    let stream = await navigator.mediaDevices.getUserMedia(constraints);
+    video.srcObject = stream;
+  } catch (error) {
+    console.error("カメラの起動に失敗しました:", error);
+  }
+}
+
+// 初回の getUserMedia 呼び出しでデバイス情報を取得
+async function initializeCamera() {
+  try {
+    let stream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+    });
+    stream.getTracks().forEach((track) => track.stop()); // すぐに停止してデバイス情報だけ取得
+    await startCamera();
+  } catch (error) {
+    console.error("初回カメラアクセスに失敗しました:", error);
+  }
+}
+
+// カメラ一覧を取得し、外カメラを探す
+async function selectCameraManually() {
+  let devices = await navigator.mediaDevices.enumerateDevices();
+  let videoDevices = devices.filter((device) => device.kind === "videoinput");
+
+  if (videoDevices.length === 0) {
+    console.error("カメラデバイスが見つかりません");
+    return;
+  }
+
+  let backCamera = videoDevices.find((device) =>
+    device.label.toLowerCase().includes("back")
+  );
+
+  let constraints = {
+    video: {
+      deviceId: backCamera
+        ? { exact: backCamera.deviceId }
+        : { exact: videoDevices[0].deviceId },
+    },
+  };
+
+  try {
+    let stream = await navigator.mediaDevices.getUserMedia(constraints);
+    video.srcObject = stream;
+  } catch (error) {
+    console.error("カメラの手動選択に失敗しました:", error);
+  }
+}
+
+// 📌 カメラ映像の取得
+navigator.mediaDevices
+  .getUserMedia({ video: { facingMode: "environment" } })
+  .then((stream) => {
+    video.srcObject = stream;
+  })
+  .catch((err) => {
+    console.error("カメラのアクセスに失敗しました:", err);
+    model.visible = true;
+  });
+
+// 📌 Three.js のシーンを作成
+const scene = new THREE.Scene();
+
+// 📌 カメラ設定
+const camera = new THREE.PerspectiveCamera(
+  75,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  1000
+);
+camera.position.set(0, 0, 2); // 3Dオブジェクトを表示する位置
+
+// 📌 レンダラー設定（背景透明）
+const renderer = new THREE.WebGLRenderer({ alpha: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// 📌 ライト設定
+const ambientLight = new THREE.AmbientLight(0xffffff, 1.2); // 環境光
+scene.add(ambientLight);
+
+const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+directionalLight.position.set(10, 10, 10); // ライトの方向
+scene.add(directionalLight);
+
+const loader = new THREE.GLTFLoader();
+
+const pokemons = [
+  { name: "nyasu.glb", weight: 5 },
+  { name: "kodakku.glb", weight: 5 },
+  { name: "pikachu.glb", weight: 5 },
+  { name: "Groudon.glb", weight: 1 }, // 出現確率を低め
+  { name: "GroudonPrimal.glb", weight: 1 }, // 出現確率を低め
+];
+
+// 重みに基づいてランダムに選択する関数
+function getRandomPokemon() {
+  let totalWeight = pokemons.reduce((sum, p) => sum + p.weight, 0);
+  let randomNum = Math.random() * totalWeight;
+
+  for (let p of pokemons) {
+    if (randomNum < p.weight) {
+      return p.name;
+    }
+    randomNum -= p.weight;
+  }
+}
+
+// ランダムに選ばれたポケモンをロード
+const selectedPokemon = getRandomPokemon();
+loader.load(selectedPokemon, function (gltf) {
+  model = gltf.scene;
+  if (["Groudon.glb", "GroudonPrimal.glb"].includes(selectedPokemon)) {
+    model.scale.set(0.003, 0.003, 0.003); // サイズ調整
+  } else {
+    model.scale.set(0.03, 0.03, 0.03); // サイズ調整
+  }
+  model.position.set(0, -1, 0); // 位置調整
+  model.visible = false;
+  scene.add(model);
+});
+
+// 📌 アニメーションループ
+function animate() {
+  requestAnimationFrame(animate);
+  if (model) {
+    model.rotation.y += 0.01; // モデルを回転
+  }
+  renderer.render(scene, camera);
+}
+animate();
+
+// 📌 ウィンドウリサイズ対応
+window.addEventListener("resize", () => {
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+});
+
+window.onload = () => {
+  initializeCamera();
+  checkOpenCvReady();
+};
