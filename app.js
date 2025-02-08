@@ -1,3 +1,5 @@
+const THRESHOLD_VALUE = 0.3;
+
 const video = document.getElementById("camera");
 const canvas = document.getElementById("output");
 const statusElement = document.getElementById("status");
@@ -97,7 +99,7 @@ const start = async () => {
     const similarity = matches.size() / templateKeypoints.size();
     statusElement.innerText = `類似度: ${similarity.toFixed(2)}`;
 
-    if (similarity >= 0.28) {
+    if (similarity >= THRESHOLD_VALUE) {
       statusElement.innerText = ``;
       model.visible = true;
       clearInterval(interval);
