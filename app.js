@@ -1,13 +1,32 @@
-const THRESHOLD_VALUE = 0.1;
+// const THRESHOLD_VALUE = 0.1;
+const THRESHOLD_VALUE = 0.37;
 
 const pokemons = [
-  // { name: "nyasu.glb", weight: 5 },
-  // { name: "kodakku.glb", weight: 5 },
-  { name: "pikachu.glb", weight: 5 },
-  { name: "Groudon.glb", weight: 5 }, // 出現確率を低め
-  { name: "GroudonPrimal.glb", weight: 5 }, // 出現確率を低め
+  { name: "pikachu.glb", weight: 1 },
+  { name: "Groudon.glb", weight: 1 }, // 出現確率を低め
+  { name: "GroudonPrimal.glb", weight: 1 }, // 出現確率を低め
+  { name: "diguda.glb", weight: 1 },
+  { name: "ibirutaru.glb", weight: 1 },
+  { name: "koikingu.glb", weight: 1 },
+  { name: "nyasu.glb", weight: 1 },
+  { name: "raikou.glb", weight: 1 },
+  { name: "zubatto.glb", weight: 1 },
+  { name: "sander.glb", weight: 1 },
+  { name: "myu2.glb", weight: 1 },
+  { name: "nyoromo.glb", weight: 1 },
+  { name: "zekuromu.glb", weight: 1 },
+  { name: "nidoran.glb", weight: 1 },
+  { name: "omunito.glb", weight: 1 },
+  { name: "ninfia.glb", weight: 1 },
+  { name: "zeruneasu.glb", weight: 1 },
+  { name: "hitokage.glb", weight: 1 },
+  { name: "gardi.glb", weight: 1 },
+  { name: "kaioga.glb", weight: 1 },
+  { name: "girati.glb", weight: 1 },
+  { name: "kaioga_primal.glb", weight: 1 },
+  { name: "betobeta.glb", weight: 1 },
+  { name: "kodakku.glb", weight: 1 },
 ];
-
 const video = document.getElementById("camera");
 const canvas = document.getElementById("output");
 const statusElement = document.getElementById("status");
@@ -258,7 +277,7 @@ function getRandomPokemon() {
 
   for (let p of pokemons) {
     if (randomNum < p.weight) {
-      return p.name;
+      return "assets/" + p.name;
     }
     randomNum -= p.weight;
   }
@@ -268,7 +287,15 @@ function getRandomPokemon() {
 const selectedPokemon = getRandomPokemon();
 loader.load(selectedPokemon, function (gltf) {
   model = gltf.scene;
-  if (["Groudon.glb", "GroudonPrimal.glb"].includes(selectedPokemon)) {
+  if (
+    [
+      "assets/Groudon.glb",
+      "assets/GroudonPrimal.glb",
+      "assets/kaioga.glb",
+      "assets/kaioga_primal.glb",
+      "assets/girati.glb",
+    ].includes(selectedPokemon)
+  ) {
     model.scale.set(0.004, 0.004, 0.004); // サイズ調整
   } else {
     model.scale.set(0.03, 0.03, 0.03); // サイズ調整
