@@ -1,9 +1,18 @@
-const THRESHOLD_VALUE = 0.37;
+const THRESHOLD_VALUE = 0.1;
+
+const pokemons = [
+  // { name: "nyasu.glb", weight: 5 },
+  // { name: "kodakku.glb", weight: 5 },
+  { name: "pikachu.glb", weight: 5 },
+  { name: "Groudon.glb", weight: 5 }, // 出現確率を低め
+  { name: "GroudonPrimal.glb", weight: 5 }, // 出現確率を低め
+];
 
 const video = document.getElementById("camera");
 const canvas = document.getElementById("output");
 const statusElement = document.getElementById("status");
 const templateImgElement = document.getElementById("template-img");
+const resetButton = document.getElementById("reset");
 
 // 📌 3Dモデル（Pikachu.glb）をロード
 let model;
@@ -106,6 +115,7 @@ const start = async () => {
       statusElement.innerText = `類似度: ${maxSimilarity.toFixed(2)}`;
       model.visible = true;
       clearInterval(interval);
+      resetButton.style.display = "block";
     }
 
     // メモリ解放
@@ -241,14 +251,6 @@ scene.add(directionalLight);
 
 const loader = new THREE.GLTFLoader();
 
-const pokemons = [
-  { name: "nyasu.glb", weight: 5 },
-  { name: "kodakku.glb", weight: 5 },
-  { name: "pikachu.glb", weight: 5 },
-  { name: "Groudon.glb", weight: 1 }, // 出現確率を低め
-  { name: "GroudonPrimal.glb", weight: 1 }, // 出現確率を低め
-];
-
 // 重みに基づいてランダムに選択する関数
 function getRandomPokemon() {
   let totalWeight = pokemons.reduce((sum, p) => sum + p.weight, 0);
@@ -267,7 +269,7 @@ const selectedPokemon = getRandomPokemon();
 loader.load(selectedPokemon, function (gltf) {
   model = gltf.scene;
   if (["Groudon.glb", "GroudonPrimal.glb"].includes(selectedPokemon)) {
-    model.scale.set(0.003, 0.003, 0.003); // サイズ調整
+    model.scale.set(0.004, 0.004, 0.004); // サイズ調整
   } else {
     model.scale.set(0.03, 0.03, 0.03); // サイズ調整
   }
@@ -297,3 +299,7 @@ window.onload = () => {
   initializeCamera();
   checkOpenCvReady();
 };
+
+resetButton.addEventListener("click", () => {
+  window.location.reload();
+});
