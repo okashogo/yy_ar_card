@@ -8,32 +8,33 @@ const templateImgElement = document.getElementById("template-img");
 const resetButton = document.getElementById("reset");
 
 const pokemons = [
-  // { name: "pikachu.glb", weight: 1 },
-  // { name: "Groudon.glb", weight: 1 }, // 出現確率を低め
-  // { name: "GroudonPrimal.glb", weight: 1 }, // 出現確率を低め
-  // { name: "diguda.glb", weight: 1 },
-  // { name: "iberutaru.glb", weight: 1 },
-  // { name: "koikingu.glb", weight: 1 },
-  // { name: "nyasu.glb", weight: 1 },
-  // { name: "raikou.glb", weight: 1 },
-  // { name: "sander.glb", weight: 1 },
-  // { name: "myu2.glb", weight: 1 },
-  // { name: "zekuromu.glb", weight: 1 },
-  // { name: "nidoran.glb", weight: 1 },
-  // { name: "omunito.glb", weight: 1 },
-  // { name: "ninfia.glb", weight: 1 },
-  // { name: "zeruneasu.glb", weight: 1 },
-  // { name: "hitokage.glb", weight: 1 },
-  // { name: "gardi.glb", weight: 1 },
-  // { name: "kaioga.glb", weight: 1 },
+  { name: "pikachu.glb", weight: 1 },
+  { name: "Groudon.glb", weight: 1 }, // 出現確率を低め
+  { name: "GroudonPrimal.glb", weight: 1 }, // 出現確率を低め
+  { name: "diguda.glb", weight: 1 },
+  { name: "iberutaru.glb", weight: 1 },
+  { name: "koikingu.glb", weight: 1 },
+  { name: "nyasu.glb", weight: 1 },
+  { name: "raikou.glb", weight: 1 },
+  { name: "sander.glb", weight: 1 },
+  { name: "zekuromu.glb", weight: 1 },
+  { name: "nidoran.glb", weight: 1 },
+  { name: "omunito.glb", weight: 1 },
+  { name: "ninfia.glb", weight: 1 },
+  { name: "zeruneasu.glb", weight: 1 },
+  { name: "hitokage.glb", weight: 1 },
+  { name: "gardi.glb", weight: 1 },
+  { name: "kaioga.glb", weight: 1 },
   { name: "kaioga_primal.glb", weight: 1 },
-  // { name: "girati.glb", weight: 1 },
-  // { name: "kodakku.glb", weight: 1 },
+  { name: "girati.glb", weight: 1 },
+  { name: "kodakku.glb", weight: 1 },
 ];
 
 const setModel = (model, selectedPokemon) => {
   const pokemonName = selectedPokemon.split("/").pop().split(".")[0];
-  if (["Groudon", "GroudonPrimal"].includes(pokemonName)) {
+  if (["GroudonPrimal"].includes(pokemonName)) {
+    model.scale.set(0.0035, 0.0035, 0.0035); // サイズ調整
+  } else if (["Groudon"].includes(pokemonName)) {
     model.scale.set(0.004, 0.004, 0.004); // サイズ調整
   } else if (["raikou", "zekuromu"].includes(pokemonName)) {
     model.scale.set(0.007, 0.007, 0.007); // サイズ調整
@@ -345,5 +346,20 @@ window.onload = () => {
 };
 
 resetButton.addEventListener("click", () => {
-  window.location.reload();
+  initializeCamera();
+  checkOpenCvReady();
+  maxSimilarity = 0;
+
+  // 表示されてあるmodelを消す。
+  model.visible = false;
+
+  // ランダムに選ばれたポケモンをロード
+  const selectedPokemon = getRandomPokemon();
+  loader.load(selectedPokemon, function (gltf) {
+    model = gltf.scene;
+    setModel(model, selectedPokemon);
+    model.position.set(0, -1, 0); // 位置調整
+    model.visible = false;
+    scene.add(model);
+  });
 });
