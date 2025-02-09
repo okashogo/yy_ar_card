@@ -1,5 +1,5 @@
-const THRESHOLD_VALUE = 0.1;
-// const THRESHOLD_VALUE = 0.37;
+// const THRESHOLD_VALUE = 0.1;
+const THRESHOLD_VALUE = 0.37;
 
 const video = document.getElementById("camera");
 const canvas = document.getElementById("output");
@@ -8,26 +8,26 @@ const templateImgElement = document.getElementById("template-img");
 const resetButton = document.getElementById("reset");
 
 const pokemons = [
-  { name: "pikachu.glb", weight: 1 },
+  { name: "pikachu.glb", weight: 5 },
   { name: "Groudon.glb", weight: 1 }, // 出現確率を低め
   { name: "GroudonPrimal.glb", weight: 1 }, // 出現確率を低め
-  { name: "diguda.glb", weight: 1 },
+  { name: "diguda.glb", weight: 2 },
   { name: "iberutaru.glb", weight: 1 },
-  { name: "koikingu.glb", weight: 1 },
-  { name: "nyasu.glb", weight: 1 },
+  { name: "koikingu.glb", weight: 3 },
+  { name: "nyasu.glb", weight: 2 },
   { name: "raikou.glb", weight: 1 },
-  { name: "sander.glb", weight: 1 },
+  { name: "sander.glb", weight: 2 },
   { name: "zekuromu.glb", weight: 1 },
-  { name: "nidoran.glb", weight: 1 },
-  { name: "omunito.glb", weight: 1 },
-  { name: "ninfia.glb", weight: 1 },
+  { name: "nidoran.glb", weight: 2 },
+  { name: "omunito.glb", weight: 2 },
+  { name: "ninfia.glb", weight: 2 },
   { name: "zeruneasu.glb", weight: 1 },
-  { name: "hitokage.glb", weight: 1 },
-  { name: "gardi.glb", weight: 1 },
+  { name: "hitokage.glb", weight: 2 },
+  { name: "gardi.glb", weight: 2 },
   { name: "kaioga.glb", weight: 1 },
   { name: "kaioga_primal.glb", weight: 1 },
   { name: "girati.glb", weight: 1 },
-  { name: "kodakku.glb", weight: 1 },
+  { name: "kodakku.glb", weight: 2 },
 ];
 
 const setModel = (model, selectedPokemon) => {
