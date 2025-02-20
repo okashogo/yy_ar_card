@@ -228,6 +228,9 @@ async function startCamera() {
     // ストリームを取得
     let stream = await navigator.mediaDevices.getUserMedia(constraints);
     video.srcObject = stream;
+    if (window.localVideo) {
+      window.localVideo.stream = stream;
+    }
   } catch (error) {
     console.error("カメラの起動に失敗しました:", error);
   }
@@ -272,6 +275,9 @@ async function selectCameraManually() {
   try {
     let stream = await navigator.mediaDevices.getUserMedia(constraints);
     video.srcObject = stream;
+    if (window.localVideo) {
+      window.localVideo.stream = stream;
+    }
   } catch (error) {
     console.error("カメラの手動選択に失敗しました:", error);
   }
