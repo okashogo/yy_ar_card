@@ -198,8 +198,10 @@ async function startCamera() {
 
     // iOSでは `device.label` の取得が getUserMedia を実行後でないとできない場合がある
     if (videoDevices.length > 1) {
-      backCamera = videoDevices.find((device) =>
-        device.label.toLowerCase().includes("back")
+      backCamera = videoDevices.find(
+        (device) =>
+          device.label.toLowerCase().includes("back") ||
+          device.label.toLowerCase().includes("rear")
       );
     }
 
@@ -207,7 +209,7 @@ async function startCamera() {
       video: {
         width: { ideal: 1280 },
         height: { ideal: 720 },
-        facingMode: backCamera ? undefined : { ideal: "environment" }, // バックカメラが見つからなかった場合
+        facingMode: { ideal: "environment" }, // バックカメラが見つからなかった場合
         deviceId: backCamera ? { exact: backCamera.deviceId } : undefined,
       },
     };
