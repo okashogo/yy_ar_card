@@ -201,7 +201,7 @@ async function startCamera() {
       backCamera = videoDevices.find(
         (device) =>
           device.label.toLowerCase().includes("back") ||
-          device.label.toLowerCase().includes("rear")
+          device.label.toLowerCase().includes("environment")
       );
     }
 
@@ -209,8 +209,7 @@ async function startCamera() {
       video: {
         width: { ideal: 1280 },
         height: { ideal: 720 },
-        facingMode: { ideal: "environment" }, // バックカメラが見つからなかった場合
-        deviceId: backCamera ? { exact: backCamera.deviceId } : undefined,
+        deviceId: backCamera ? { exact: backCamera.deviceId } : undefined, // 明示的にバックカメラを指定
       },
     };
 
