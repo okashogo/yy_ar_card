@@ -186,30 +186,37 @@ function checkOpenCvReady() {
   }
 }
 
+async function getBackCamera() {
+  // 一度 getUserMedia() を実行してカメラのラベル情報を取得可能にする
+  try {
+    await navigator.mediaDevices.getUserMedia({ video: true });
+  } catch (error) {
+    console.error("カメラの一時アクセスに失敗しました:", error);
+  }
+
+  // すべてのカメラデバイスを取得
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  const videoDevices = devices.filter((device) => device.kind === "videoinput");
+
+  // "back" または "environment" を含むカメラを探す
+  const backCamera = videoDevices.find(
+    (device) =>
+      device.label.toLowerCase().includes("back") ||
+      device.label.toLowerCase().includes("environment")
+  );
+
+  return backCamera ? backCamera.deviceId : null;
+}
+
 async function startCamera() {
   try {
-    // すべてのカメラデバイスを取得
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    const videoDevices = devices.filter(
-      (device) => device.kind === "videoinput"
-    );
-
-    let backCamera = null;
-
-    // iOSでは `device.label` の取得が getUserMedia を実行後でないとできない場合がある
-    if (videoDevices.length > 1) {
-      backCamera = videoDevices.find(
-        (device) =>
-          device.label.toLowerCase().includes("back") ||
-          device.label.toLowerCase().includes("environment")
-      );
-    }
+    const backCameraId = await getBackCamera();
 
     let constraints = {
       video: {
         width: { ideal: 1280 },
         height: { ideal: 720 },
-        deviceId: backCamera ? { exact: backCamera.deviceId } : undefined, // 明示的にバックカメラを指定
+        deviceId: backCameraId ? { exact: backCameraId } : undefined,
       },
     };
 
