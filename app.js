@@ -189,7 +189,11 @@ function checkOpenCvReady() {
 async function getBackCamera() {
   // 一度 getUserMedia() を実行してカメラのラベル情報を取得可能にする
   try {
-    await navigator.mediaDevices.getUserMedia({ video: true });
+    await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { exact: "environment" },
+      },
+    });
   } catch (error) {
     console.error("カメラの一時アクセスに失敗しました:", error);
   }
@@ -217,6 +221,7 @@ async function startCamera() {
         width: { ideal: 1280 },
         height: { ideal: 720 },
         deviceId: backCameraId ? { exact: backCameraId } : undefined,
+        facingMode: { exact: "environment" },
       },
     };
 
@@ -232,7 +237,9 @@ async function startCamera() {
 async function initializeCamera() {
   try {
     let stream = await navigator.mediaDevices.getUserMedia({
-      video: true,
+      video: {
+        facingMode: { exact: "environment" },
+      },
     });
     stream.getTracks().forEach((track) => track.stop()); // すぐに停止してデバイス情報だけ取得
     await startCamera();
@@ -257,6 +264,7 @@ async function selectCameraManually() {
 
   let constraints = {
     video: {
+      facingMode: { exact: "environment" },
       deviceId: backCamera
         ? { exact: backCamera.deviceId }
         : { exact: videoDevices[0].deviceId },
