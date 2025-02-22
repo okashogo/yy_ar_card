@@ -187,27 +187,28 @@ function checkOpenCvReady() {
 }
 
 async function getBackCamera() {
-  // 一度 getUserMedia() を実行してカメラのラベル情報を取得可能にする
   try {
-    await navigator.mediaDevices.getUserMedia({
-      video: true,
-    });
+    // 一度 getUserMedia() を実行してカメラのラベル情報を取得可能にする
+    await navigator.mediaDevices.getUserMedia({ video: true });
+
+    // すべてのカメラデバイスを取得
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const videoDevices = devices.filter(
+      (device) => device.kind === "videoinput"
+    );
+
+    // "back" または "environment" を含むカメラを探す
+    const backCamera = videoDevices.find(
+      (device) =>
+        device.label.toLowerCase().includes("back") ||
+        device.label.toLowerCase().includes("environment")
+    );
+
+    return backCamera ? backCamera.deviceId : null;
   } catch (error) {
     console.error("カメラの一時アクセスに失敗しました:", error);
+    return null;
   }
-
-  // すべてのカメラデバイスを取得
-  const devices = await navigator.mediaDevices.enumerateDevices();
-  const videoDevices = devices.filter((device) => device.kind === "videoinput");
-
-  // "back" または "environment" を含むカメラを探す
-  const backCamera = videoDevices.find(
-    (device) =>
-      device.label.toLowerCase().includes("back") ||
-      device.label.toLowerCase().includes("environment")
-  );
-
-  return backCamera ? backCamera.deviceId : null;
 }
 
 async function startCamera() {
@@ -218,12 +219,16 @@ async function startCamera() {
       video: {
         width: { ideal: 1280 },
         height: { ideal: 720 },
-        // Androidの場合はdeviceIdを使用
-        deviceId: backCameraId ? { exact: backCameraId } : undefined,
-        // iPhoneの場合はfacingModeを使用
-        facingMode: { exact: "environment" },
       },
     };
+
+    if (backCameraId) {
+      // Android用：deviceIdを使用
+      constraints.video.deviceId = { exact: backCameraId };
+    } else {
+      // iPhone用：facingModeを使用
+      constraints.video.facingMode = { ideal: "environment" };
+    }
 
     // ストリームを取得
     let stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -233,15 +238,15 @@ async function startCamera() {
     }
   } catch (error) {
     console.error("カメラの起動に失敗しました:", error);
+    document.getElementById("status").innerText =
+      "カメラの起動に失敗: " + error.message;
   }
 }
 
 // 初回の getUserMedia 呼び出しでデバイス情報を取得
 async function initializeCamera() {
   try {
-    let stream = await navigator.mediaDevices.getUserMedia({
-      video: true,
-    });
+    let stream = await navigator.mediaDevices.getUserMedia({ video: true });
     stream.getTracks().forEach((track) => track.stop()); // すぐに停止してデバイス情報だけ取得
     await startCamera();
   } catch (error) {
